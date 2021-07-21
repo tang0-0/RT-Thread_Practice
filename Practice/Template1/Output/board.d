@@ -11,6 +11,8 @@
 ..\..\output\board.o: ..\..\Libraries\FWlib\inc\stm32f10x_usart.h
 ..\..\output\board.o: ..\..\Libraries\FWlib\inc\misc.h
 ..\..\output\board.o: ..\..\User\bsp\led\bsp_led.h
+..\..\output\board.o: ..\..\User\bsp\usart\bsp_usart.h
+..\..\output\board.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\board.o: ..\..\rtthread\3.0.3\include\rthw.h
 ..\..\output\board.o: ..\..\rtthread\3.0.3\include\rtthread.h
 ..\..\output\board.o: ..\..\User\rtconfig.h

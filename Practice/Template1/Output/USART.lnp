@@ -29,6 +29,7 @@
 "..\..\output\stm32f10x_it.o"
 "..\..\output\board.o"
 "..\..\output\bsp_led.o"
+"..\..\output\bsp_usart.o"
 "..\..\output\clock.o"
 "..\..\output\components.o"
 "..\..\output\device.o"

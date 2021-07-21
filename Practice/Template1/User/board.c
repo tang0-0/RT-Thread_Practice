@@ -37,6 +37,7 @@ void rt_hw_board_init()
     
 	/* 硬件BSP初始化统统放在这里，比如LED，串口，LCD等 */
     LED_GPIO_Config();
+    USART_Config();
 	
 /* 调用组件初始化函数 (use INIT_BOARD_EXPORT()) */
 #ifdef RT_USING_COMPONENTS_INIT
@@ -72,4 +73,27 @@ void SysTick_Handler(void)
 
     /* 离开中断 */
     rt_interrupt_leave();
+}
+
+void rt_hw_console_output(const char *str)
+{	
+	/* 进入临界段 */
+    rt_enter_critical();
+
+	/* 直到字符串结束 */
+    while (*str!='\0')
+	{
+		/* 换行 */
+        if (*str=='\n')
+		{
+			USART_SendData(DEBUG_USARTx, '\r'); 
+			while (USART_GetFlagStatus(DEBUG_USARTx, USART_FLAG_TXE) == RESET);
+		}
+
+		USART_SendData(DEBUG_USARTx, *str++); 				
+		while (USART_GetFlagStatus(DEBUG_USARTx, USART_FLAG_TXE) == RESET);	
+	}	
+
+	/* 退出临界段 */
+    rt_exit_critical();
 }
