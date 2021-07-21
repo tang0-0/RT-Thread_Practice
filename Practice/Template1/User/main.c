@@ -33,6 +33,7 @@
 /* 定义线程控制块指针 */
 static rt_thread_t led1_thread = RT_NULL;
 static rt_thread_t led2_thread = RT_NULL;
+static rt_thread_t key0_thread = RT_NULL;
 
 /*
 *************************************************************************
@@ -47,7 +48,7 @@ static void led1_thread_entry(void *parameter)
         LED1_ON;
         rt_kprintf("led1 on\r\n");
         rt_thread_delay(500);   /* 延时500个tick */
-        
+
         LED1_OFF;
         rt_kprintf("led1 off\r\n");
         rt_thread_delay(500);   /* 延时500个tick */
@@ -68,6 +69,46 @@ static void led2_thread_entry(void *parameter)
     }
 }
 
+static void key0_thread_entry(void *parameter)
+{
+    rt_err_t res = RT_EOK;
+
+    while (1)
+    {
+        if (Key_Scan(KEY1_GPIO_PORT, KEY1_GPIO_PIN) == KEY_ON)
+        {
+            rt_kprintf("suspend led1\n");
+            res = rt_thread_suspend(led1_thread);/* 挂起LED1线程 */
+            if (RT_EOK == res)
+            {
+                rt_kprintf("suspend led1 success\n");
+            }
+            else
+            {
+                rt_kprintf("suspend led1 failed:0x%lx\n", res);
+            }
+
+        }
+
+        if (Key_Scan(KEY2_GPIO_PORT, KEY2_GPIO_PIN) == KEY_ON)/* K1 被按下 */
+        {
+            printf("resume led1\n");
+            res = rt_thread_resume(led1_thread);/* 恢复LED1线程！ */
+            if (RT_EOK == res)
+            {
+                rt_kprintf("resume led1 success\n");
+            }
+            else
+            {
+                rt_kprintf("resume led1 failed:0x%lx\n", res);
+            }
+        }
+
+        rt_thread_delay(20);
+    }
+
+
+}
 
 /*
 *************************************************************************
@@ -106,6 +147,20 @@ int main(void)
     /* 启动线程，开启调度 */
     if (led2_thread != RT_NULL)
         rt_thread_startup(led2_thread);
+    else
+        return -1;
+
+    key0_thread =                          /* 线程控制块指针 */
+        rt_thread_create("key",               /* 线程名字 */
+                         key0_thread_entry,   /* 线程入口函数 */
+                         RT_NULL,             /* 线程入口函数参数 */
+                         512,                 /* 线程栈大小 */
+                         2,                   /* 线程的优先级 */
+                         20);                 /* 线程时间片 */
+
+    /* 启动线程，开启调度 */
+    if (key0_thread != RT_NULL)
+        rt_thread_startup(key0_thread);
     else
         return -1;
 }

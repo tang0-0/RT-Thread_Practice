@@ -38,6 +38,8 @@ void rt_hw_board_init()
 	/* 硬件BSP初始化统统放在这里，比如LED，串口，LCD等 */
     LED_GPIO_Config();
     USART_Config();
+    Key_GPIO_Config();
+
 	
 /* 调用组件初始化函数 (use INIT_BOARD_EXPORT()) */
 #ifdef RT_USING_COMPONENTS_INIT
@@ -97,3 +99,4 @@ void rt_hw_console_output(const char *str)
 	/* 退出临界段 */
     rt_exit_critical();
 }
+
