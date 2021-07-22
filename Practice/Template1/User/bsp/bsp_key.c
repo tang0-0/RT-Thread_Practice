@@ -16,6 +16,7 @@
   */ 
   
 #include "bsp_key.h"  
+#include "rtthread.h"
 
 /**
   * @brief  配置按键用到的I/O口
@@ -32,14 +33,14 @@ void Key_GPIO_Config(void)
 	//选择按键的引脚
 	GPIO_InitStructure.GPIO_Pin = KEY1_GPIO_PIN; 
 	// 设置按键的引脚为浮空输入
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; 
 	//使用结构体初始化按键
 	GPIO_Init(KEY1_GPIO_PORT, &GPIO_InitStructure);
 	
 	//选择按键的引脚
 	GPIO_InitStructure.GPIO_Pin = KEY2_GPIO_PIN; 
 	//设置按键的引脚为浮空输入
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;  
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;  
 	//使用结构体初始化按键
 	GPIO_Init(KEY2_GPIO_PORT, &GPIO_InitStructure);	
 }
@@ -56,9 +57,11 @@ uint8_t Key_Scan(GPIO_TypeDef* GPIOx,uint16_t GPIO_Pin)
 	/*检测是否有按键按下 */
 	if(GPIO_ReadInputDataBit(GPIOx,GPIO_Pin) == KEY_ON )  
 	{	 
-		/*等待按键释放 */
-		while(GPIO_ReadInputDataBit(GPIOx,GPIO_Pin) == KEY_ON);   
-		return 	KEY_ON;	 
+		rt_thread_delay(100);
+		if(GPIO_ReadInputDataBit(GPIOx,GPIO_Pin) == KEY_ON )
+			return 	KEY_ON;
+		else
+			return KEY_OFF; 
 	}
 	else
 		return KEY_OFF;
