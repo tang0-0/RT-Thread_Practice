@@ -34,7 +34,7 @@
 static rt_thread_t led1_thread = RT_NULL;
 static rt_thread_t led2_thread = RT_NULL;
 static rt_thread_t key0_thread = RT_NULL;
-static rt_thread_t receive_thread = RT_NULL;
+static rt_thread_t key1_thread = RT_NULL;
 /* 定义信号量控制块 */
 static rt_sem_t test_sem = RT_NULL;
 /*
@@ -79,42 +79,42 @@ static void key0_thread_entry(void *parameter)
     {
         if (Key_Scan(KEY1_GPIO_PORT, KEY1_GPIO_PIN) == KEY_ON)/* K1 被按下 */
         {
-            uwRet = rt_sem_release(	test_sem	);   //释放二值信号量
+            uwRet = rt_sem_release(test_sem);     //释放信号量
             if (RT_EOK != uwRet)
             {
                 rt_kprintf("release failed:%lx\n", uwRet);
             }
             else
             {
-                rt_kprintf("release\n");
+                rt_kprintf("release one sem\n");
             }
         }
-        
+
         rt_thread_delay(20);
     }
 
 
 }
 
-static void receive_thread_entry(void *parameter)
+static void key1_thread_entry(void *parameter)
 {
     rt_err_t uwRet = RT_EOK;
-    /* 任务都是一个无限循环，不能返回 */
     while (1)
     {
-        uwRet = rt_sem_take(test_sem,	/* 获取信号量 */
-                  RT_WAITING_FOREVER); /* 等待时间：一直等 */	
+        if (Key_Scan(KEY2_GPIO_PORT, KEY2_GPIO_PIN) == KEY_ON)       //如果KEY2被单击
+        {
+            /* 获取一个计数信号量 */
+            uwRet = rt_sem_take(test_sem, 0);  /* 获取信号量 */
+            if (RT_EOK == uwRet)
+                rt_kprintf("take one sem\r\n");
+            else
+                rt_kprintf("up\r\n");
 
-        if (RT_EOK == uwRet)
-        {
-            rt_kprintf("key pressed\n");
         }
-        else
-        {
-            rt_kprintf("sem_take failed:0x%lx\n", uwRet);
-        }
-        rt_thread_delay(200);
+        rt_thread_delay(20);     //每20ms扫描一次
+
     }
+
 }
 
 /*
@@ -158,28 +158,28 @@ int main(void)
         return -1;
 
     /* 创建一个信号量 */
-	test_sem = rt_sem_create("test_sem",/* 信号量名字 */
-                     0,     /* 信号量初始值 */
-                     RT_IPC_FLAG_FIFO); /* 信号量模式 FIFO(0x00)*/
+    test_sem = rt_sem_create("test_sem",/* 信号量名字 */
+                             5,     /* 信号量初始值 */
+                             RT_IPC_FLAG_FIFO); /* 信号量模式 FIFO(0x00)*/
     if (test_sem != RT_NULL)
         rt_kprintf("create sem success\n\n");
 
-    receive_thread =                          /* 线程控制块指针 */
-        rt_thread_create("receive",               /* 线程名字 */
-                         receive_thread_entry,   /* 线程入口函数 */
+    key1_thread =                          /* 线程控制块指针 */
+        rt_thread_create("key1",               /* 线程名字 */
+                         key1_thread_entry,   /* 线程入口函数 */
                          RT_NULL,             /* 线程入口函数参数 */
                          512,                 /* 线程栈大小 */
                          3,                   /* 线程的优先级 */
                          20);                 /* 线程时间片 */
 
     /* 启动线程，开启调度 */
-    if (receive_thread != RT_NULL)
-        rt_thread_startup(receive_thread);
+    if (key1_thread != RT_NULL)
+        rt_thread_startup(key1_thread);
     else
         return -1;
 
     key0_thread =                          /* 线程控制块指针 */
-        rt_thread_create("send",               /* 线程名字 */
+        rt_thread_create("key0",               /* 线程名字 */
                          key0_thread_entry,   /* 线程入口函数 */
                          RT_NULL,             /* 线程入口函数参数 */
                          512,                 /* 线程栈大小 */
