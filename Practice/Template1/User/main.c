@@ -34,10 +34,13 @@
 static rt_thread_t led1_thread = RT_NULL;
 static rt_thread_t led2_thread = RT_NULL;
 static rt_thread_t key0_thread = RT_NULL;
-static rt_thread_t key1_thread = RT_NULL;
-/* 定义互斥量控制块 */
-static rt_mutex_t test_mux = RT_NULL;
-uint32_t num = 0;
+static rt_thread_t handler_thread = RT_NULL;
+/* 定义事件控制块 */
+static rt_event_t test_event = RT_NULL;
+
+#define KEY1_EVENT  (0x01 << 0)//设置事件掩码的位0
+#define KEY2_EVENT  (0x01 << 1)//设置事件掩码的位1
+
 /*
 *************************************************************************
 *                             函数声明
@@ -76,33 +79,42 @@ static void key0_thread_entry(void *parameter)
 {
     while (1)
     {
-        rt_mutex_take(test_mux,           /* 获取互斥量 */
-                      RT_WAITING_FOREVER);    /* 等待时间：一直等 */
-        ++num;
-        rt_thread_delay(1000);
-        rt_thread_delay(1000);
-        rt_thread_delay(1000);
+        if (Key_Scan(KEY1_GPIO_PORT, KEY1_GPIO_PIN) == KEY_ON)       //如果KEY2被单击
+        {
+            rt_kprintf("KEY1 pressed\n");
+            /* 发送一个事件1 */
+            rt_event_send(test_event, KEY1_EVENT);
+        }
 
-        rt_mutex_release(test_mux);    //释放互斥量
-
-        rt_thread_delay(10);
-
+        if (Key_Scan(KEY2_GPIO_PORT, KEY2_GPIO_PIN) == KEY_ON)       //如果KEY2被单击
+        {
+            rt_kprintf("KEY2 pressed\n");
+            /* 发送一个事件2 */
+            rt_event_send(test_event, KEY2_EVENT);
+        }
+        rt_thread_delay(20);     //每20ms扫描一次
     }
 
 }
 
-static void key1_thread_entry(void *parameter)
+static void handler_thread_entry(void *parameter)
 {
+    rt_uint32_t recved;
+
     while (1)
     {
-        rt_mutex_take(test_mux,           /* 获取互斥量 */
-                      RT_WAITING_FOREVER);    /* 等待时间：一直等 */
-
-        rt_kprintf("num:%d\n", num);
-
-        rt_mutex_release(test_mux);    //释放互斥量
-
-        rt_thread_delay(10);
+        /* 等待接收事件标志 */
+        rt_event_recv(test_event,  /* 事件对象句柄 */
+                      KEY1_EVENT | KEY2_EVENT, /* 接收线程感兴趣的事件 */
+                      RT_EVENT_FLAG_AND | RT_EVENT_FLAG_CLEAR, /* 接收选项 */
+                      RT_WAITING_FOREVER,/* 指定超时事件,一直等 */
+                      &recved);    /* 指向接收到的事件 */
+        if (recved == (KEY1_EVENT | KEY2_EVENT)) /* 如果接收完成并且正确 */
+        {
+            rt_kprintf("Key1 and Key2\n");
+        }
+        else
+            rt_kprintf("failed\n");
 
     }
 
@@ -125,7 +137,7 @@ int main(void)
                          led1_thread_entry,   /* 线程入口函数 */
                          RT_NULL,             /* 线程入口函数参数 */
                          512,                 /* 线程栈大小 */
-                         5,                   /* 线程的优先级 */
+                         4,                   /* 线程的优先级 */
                          20);                 /* 线程时间片 */
 
     /* 启动线程，开启调度 */
@@ -147,26 +159,22 @@ int main(void)
         rt_thread_startup(led2_thread);
     else
         return -1;
-    /* 
-    使用 RT_IPC_FLAG_PRIO 优先级 flag 创建的 IPC 对象，在多个线程等
-    待资源时，将由优先级高的线程优先获得资源。而使用 RT_IPC_FLAG_FIFO 先进先出 flag
-    创建的 IPC 对象，在多个线程等待资源时，将按照先来先得的顺序获得资源。 
-    */
-    test_mux = rt_mutex_create("test_mux", RT_IPC_FLAG_PRIO);
-    if (test_mux != RT_NULL)
-        rt_kprintf("creat mux success\n\n");
+    test_event = rt_event_create("test_event",/* 事件标志组名字 */
+                                 RT_IPC_FLAG_PRIO); /* 事件模式 FIFO(0x00)*/
+    if (test_event != RT_NULL)
+        rt_kprintf("creat event success\r\n");
 
-    key1_thread =                          /* 线程控制块指针 */
-        rt_thread_create("key1",               /* 线程名字 */
-                         key1_thread_entry,   /* 线程入口函数 */
+    handler_thread =                          /* 线程控制块指针 */
+        rt_thread_create("handler",               /* 线程名字 */
+                         handler_thread_entry,   /* 线程入口函数 */
                          RT_NULL,             /* 线程入口函数参数 */
                          512,                 /* 线程栈大小 */
                          3,                   /* 线程的优先级 */
                          20);                 /* 线程时间片 */
 
     /* 启动线程，开启调度 */
-    if (key1_thread != RT_NULL)
-        rt_thread_startup(key1_thread);
+    if (handler_thread != RT_NULL)
+        rt_thread_startup(handler_thread);
     else
         return -1;
 
