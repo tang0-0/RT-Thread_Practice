@@ -33,13 +33,12 @@
 /* 定义线程控制块指针 */
 static rt_thread_t led1_thread = RT_NULL;
 static rt_thread_t led2_thread = RT_NULL;
-static rt_thread_t key0_thread = RT_NULL;
-static rt_thread_t handler_thread = RT_NULL;
-/* 定义事件控制块 */
-static rt_event_t test_event = RT_NULL;
+/* 定义线软件定时器制块 */
+static rt_timer_t swtmr1 = RT_NULL;
+static rt_timer_t swtmr2 = RT_NULL;
 
-#define KEY1_EVENT  (0x01 << 0)//设置事件掩码的位0
-#define KEY2_EVENT  (0x01 << 1)//设置事件掩码的位1
+static uint32_t TmrCb_Count1 = 0;
+static uint32_t TmrCb_Count2 = 0;
 
 /*
 *************************************************************************
@@ -75,48 +74,31 @@ static void led2_thread_entry(void *parameter)
     }
 }
 
-static void key0_thread_entry(void *parameter)
+static void swtmr1_callback(void *parameter)
 {
-    while (1)
-    {
-        if (Key_Scan(KEY1_GPIO_PORT, KEY1_GPIO_PIN) == KEY_ON)       //如果KEY2被单击
-        {
-            rt_kprintf("KEY1 pressed\n");
-            /* 发送一个事件1 */
-            rt_event_send(test_event, KEY1_EVENT);
-        }
+    uint32_t tick_num1;
 
-        if (Key_Scan(KEY2_GPIO_PORT, KEY2_GPIO_PIN) == KEY_ON)       //如果KEY2被单击
-        {
-            rt_kprintf("KEY2 pressed\n");
-            /* 发送一个事件2 */
-            rt_event_send(test_event, KEY2_EVENT);
-        }
-        rt_thread_delay(20);     //每20ms扫描一次
-    }
+    TmrCb_Count1++;                     /* 每回调一次加一 */
+
+    tick_num1 = (uint32_t)rt_tick_get();    /* 获取滴答定时器的计数值 */
+
+    rt_kprintf("swtmr1_callback: %d\n", TmrCb_Count1);
+    rt_kprintf("systick=%d\n", tick_num1);
 
 }
 
-static void handler_thread_entry(void *parameter)
+
+static void swtmr2_callback(void *parameter)
 {
-    rt_uint32_t recved;
+    uint32_t tick_num2;
 
-    while (1)
-    {
-        /* 等待接收事件标志 */
-        rt_event_recv(test_event,  /* 事件对象句柄 */
-                      KEY1_EVENT | KEY2_EVENT, /* 接收线程感兴趣的事件 */
-                      RT_EVENT_FLAG_AND | RT_EVENT_FLAG_CLEAR, /* 接收选项 */
-                      RT_WAITING_FOREVER,/* 指定超时事件,一直等 */
-                      &recved);    /* 指向接收到的事件 */
-        if (recved == (KEY1_EVENT | KEY2_EVENT)) /* 如果接收完成并且正确 */
-        {
-            rt_kprintf("Key1 and Key2\n");
-        }
-        else
-            rt_kprintf("failed\n");
+    TmrCb_Count2++;             /* 每回调一次加一 */
 
-    }
+    tick_num2 = (uint32_t)rt_tick_get();    /* 获取滴答定时器的计数值 */
+
+    rt_kprintf("swtmr2_callback:%d\n", TmrCb_Count2);
+
+    rt_kprintf("systick=%d\n", tick_num2);
 
 }
 
@@ -159,38 +141,29 @@ int main(void)
         rt_thread_startup(led2_thread);
     else
         return -1;
-    test_event = rt_event_create("test_event",/* 事件标志组名字 */
-                                 RT_IPC_FLAG_PRIO); /* 事件模式 FIFO(0x00)*/
-    if (test_event != RT_NULL)
-        rt_kprintf("creat event success\r\n");
 
-    handler_thread =                          /* 线程控制块指针 */
-        rt_thread_create("handler",               /* 线程名字 */
-                         handler_thread_entry,   /* 线程入口函数 */
-                         RT_NULL,             /* 线程入口函数参数 */
-                         512,                 /* 线程栈大小 */
-                         3,                   /* 线程的优先级 */
-                         20);                 /* 线程时间片 */
+    /* 创建一个软件定时器 */
+    swtmr1 = rt_timer_create("swtmr1_callback", /* 软件定时器的名称 */
+                             swtmr1_callback,/* 软件定时器的回调函数 */
+                             RT_NULL,          /* 定时器超时函数的入口参数 */
+                             5000,   /* 软件定时器的超时时间(周期回调时间) */
+                             RT_TIMER_FLAG_ONE_SHOT | RT_TIMER_FLAG_SOFT_TIMER);
+    /* 软件定时器模式 一次模式 */
+    /* 启动定时器 */
+    if (swtmr1 != RT_NULL)
+        rt_timer_start(swtmr1);
 
-    /* 启动线程，开启调度 */
-    if (handler_thread != RT_NULL)
-        rt_thread_startup(handler_thread);
-    else
-        return -1;
+    /* 创建一个软件定时器 */
+    swtmr2 = rt_timer_create("swtmr2_callback", /* 软件定时器的名称 */
+                             swtmr2_callback,/* 软件定时器的回调函数 */
+                             RT_NULL,          /* 定时器超时函数的入口参数 */
+                             1000,   /* 软件定时器的超时时间(周期回调时间) */
+                             RT_TIMER_FLAG_PERIODIC | RT_TIMER_FLAG_HARD_TIMER);
+    /* 软件定时器模式 周期模式 */
+    /* 启动定时器 */
+    if (swtmr2 != RT_NULL)
+        rt_timer_start(swtmr2);
 
-    key0_thread =                          /* 线程控制块指针 */
-        rt_thread_create("key0",               /* 线程名字 */
-                         key0_thread_entry,   /* 线程入口函数 */
-                         RT_NULL,             /* 线程入口函数参数 */
-                         512,                 /* 线程栈大小 */
-                         2,                   /* 线程的优先级 */
-                         20);                 /* 线程时间片 */
-
-    /* 启动线程，开启调度 */
-    if (key0_thread != RT_NULL)
-        rt_thread_startup(key0_thread);
-    else
-        return -1;
 }
 
 
