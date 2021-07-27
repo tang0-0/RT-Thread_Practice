@@ -24,6 +24,7 @@
 #include "rtthread.h"
 
 
+
 /*
 *************************************************************************
 *                               变量
@@ -33,13 +34,7 @@
 /* 定义线程控制块指针 */
 static rt_thread_t led1_thread = RT_NULL;
 static rt_thread_t led2_thread = RT_NULL;
-static rt_thread_t alloc_thread = RT_NULL;
-static rt_thread_t free_thread = RT_NULL;
-/* 定义申请内存的指针 */
-static char *p_test = RT_NULL;
-
-/* 相关宏定义 */
-#define  TEST_SIZE   100      //内存大小
+static rt_thread_t get_cpu_use_thread = RT_NULL;
 
 /*
 *************************************************************************
@@ -64,46 +59,30 @@ static void led1_thread_entry(void *parameter)
 
 static void led2_thread_entry(void *parameter)
 {
+    rt_uint16_t i;
     while (1)
     {
-        LED2_ON;
-        rt_thread_delay(300);   /* 延时300个tick */
-
-        LED2_OFF;
-        rt_thread_delay(300);   /* 延时300个tick */
-
+        LED2_TOGGLE;
+        for (i = 0; i < 10000; i++);
+        rt_thread_delay(5);
+        
     }
 }
 
-static void alloc_thread_entry(void *parameter)
+static void get_cpu_use_thread_entry(void *parameter)
 {
+    rt_uint8_t major, minor;
 
-    p_test = rt_malloc(TEST_SIZE);    /* 申请动态内存 */
-    if (RT_NULL == p_test) /* 没有申请成功 */
-        rt_kprintf("alloc failed\n");
-    else
-        rt_kprintf("alloc success:%d\n\n", p_test);
-
-    rt_memmove(p_test,"hello coder",13);
-    rt_kprintf("*p_test = %s,address:%d \n\n", p_test, p_test);
-
-    /* 任务都是一个无限循环，不能返回 */
     while (1)
     {
-        rt_thread_delay(1000);     //每1000ms扫描一次
-    }
-}
+        /* 获取 CPU 利用率数据 */
+        cpu_usage_get(&major, &minor);
 
-static void free_thread_entry(void *parameter)
-{
-    rt_free(p_test);
-    rt_kprintf("free success\n\n");
+        /* 打印 CPU 利用率 */
+        rt_kprintf("CPU %d.%d%\r\n", major, minor);
 
-    /* 任务都是一个无限循环，不能返回 */
-    while (1)
-    {
-        LED1_TOGGLE;
-        rt_thread_delay(500);     //每500ms扫描一次
+        rt_thread_delay(1000); /* 延时 1000 个 tick */
+
     }
 }
 
@@ -121,26 +100,26 @@ static void free_thread_entry(void *parameter)
   */
 int main(void)
 {
-    led1_thread =                          /* 线程控制块指针 */
-        rt_thread_create("led1",               /* 线程名字 */
-                         led1_thread_entry,   /* 线程入口函数 */
-                         RT_NULL,             /* 线程入口函数参数 */
-                         512,                 /* 线程栈大小 */
-                         5,                   /* 线程的优先级 */
-                         20);                 /* 线程时间片 */
+    // led1_thread =                          /* 线程控制块指针 */
+    //     rt_thread_create("led1",               /* 线程名字 */
+    //                      led1_thread_entry,   /* 线程入口函数 */
+    //                      RT_NULL,             /* 线程入口函数参数 */
+    //                      512,                 /* 线程栈大小 */
+    //                      3,                   /* 线程的优先级 */
+    //                      20);                 /* 线程时间片 */
 
-    /* 启动线程，开启调度 */
-    if (led1_thread != RT_NULL)
-        rt_thread_startup(led1_thread);
-    else
-        return -1;
+    // /* 启动线程，开启调度 */
+    // if (led1_thread != RT_NULL)
+    //     rt_thread_startup(led1_thread);
+    // else
+    //     return -1;
 
     led2_thread =                          /* 线程控制块指针 */
         rt_thread_create("led2",               /* 线程名字 */
                          led2_thread_entry,   /* 线程入口函数 */
                          RT_NULL,             /* 线程入口函数参数 */
                          512,                 /* 线程栈大小 */
-                         5,                   /* 线程的优先级 */
+                         3,                   /* 线程的优先级 */
                          20);                 /* 线程时间片 */
 
     /* 启动线程，开启调度 */
@@ -149,35 +128,18 @@ int main(void)
     else
         return -1;
 
-    alloc_thread =                          /* 线程控制块指针 */
-    rt_thread_create( "alloc",              /* 线程名字 */
-                      alloc_thread_entry,   /* 线程入口函数 */
-                      RT_NULL,             /* 线程入口函数参数 */
-                      512,                 /* 线程栈大小 */
-                      1,                   /* 线程的优先级 */
-                      20);                 /* 线程时间片 */
-                   
-    /* 启动线程，开启调度 */
-   if (alloc_thread != RT_NULL)
-        rt_thread_startup(alloc_thread);
+    get_cpu_use_thread = /* 线程控制块指针 */
+        rt_thread_create("get_cpu_use",  /* 线程名字 */
+                         get_cpu_use_thread_entry, /* 线程入口函数 */
+                         RT_NULL, /* 线程入口函数参数 */
+                         512, /* 线程栈大小 */
+                         5, /* 线程的优先级 */
+                         20); /* 线程时间片 */
+
+    if (get_cpu_use_thread != RT_NULL)
+        rt_thread_startup(get_cpu_use_thread);
     else
         return -1;
-    
-  free_thread =                          /* 线程控制块指针 */
-    rt_thread_create( "free",              /* 线程名字 */
-                      free_thread_entry,   /* 线程入口函数 */
-                      RT_NULL,             /* 线程入口函数参数 */
-                      512,                 /* 线程栈大小 */
-                      2,                   /* 线程的优先级 */
-                      20);                 /* 线程时间片 */
-                   
-    /* 启动线程，开启调度 */
-   if (free_thread != RT_NULL)
-        rt_thread_startup(free_thread);
-    else
-        return -1;
-
-
 
 }
 

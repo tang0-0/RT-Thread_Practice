@@ -40,6 +40,8 @@ void rt_hw_board_init()
     USART_Config();
     Key_GPIO_Config();
 
+    cpu_usage_init();
+
 	
 /* 调用组件初始化函数 (use INIT_BOARD_EXPORT()) */
 #ifdef RT_USING_COMPONENTS_INIT
