@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "rtthread.h": "c"
+        "rtthread.h": "c",
+        "board.h": "c"
     }
 }

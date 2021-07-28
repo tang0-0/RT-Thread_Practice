@@ -1,0 +1,21 @@
+{
+    "files.associations": {
+        "stdlib.h": "c",
+        "string.h": "c",
+        "stdint.h": "c",
+        "bsp_rtc.h": "c",
+        "stm32f10x.h": "c",
+        "string": "c",
+        "bsp_uart.h": "c",
+        "log.h": "c",
+        "board.h": "c"
+    },
+    "cSpell.words": [
+        "t",
+        "uint"
+    ],
+    "cSpell.ignoreWords": [
+        "t",
+        "uint"
+    ]
+}
