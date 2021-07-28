@@ -2,7 +2,10 @@
 .\output\clock.o: ..\rt-thread\include\rthw.h
 .\output\clock.o: ..\rt-thread\include\rtthread.h
 .\output\clock.o: ..\rt-thread\bsp\rtconfig.h
+.\output\clock.o: ..\rt-thread\bsp\finsh_config.h
 .\output\clock.o: ..\rt-thread\include\rtdebug.h
 .\output\clock.o: ..\rt-thread\include\rtdef.h
 .\output\clock.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 .\output\clock.o: ..\rt-thread\include\rtservice.h
+.\output\clock.o: ..\rt-thread\components\finsh\finsh_api.h
+.\output\clock.o: ..\rt-thread\components\finsh\finsh_config.h

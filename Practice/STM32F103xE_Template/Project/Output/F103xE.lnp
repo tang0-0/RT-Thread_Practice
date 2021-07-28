@@ -27,6 +27,7 @@
 ".\output\stm32f10x_wwdg.o"
 ".\output\stm32f10x_it.o"
 ".\output\bsp_uart.o"
+".\output\bsp_led.o"
 ".\output\main.o"
 ".\output\board.o"
 ".\output\context_rvds.o"
@@ -46,6 +47,10 @@
 ".\output\slab.o"
 ".\output\thread.o"
 ".\output\timer.o"
+".\output\cmd.o"
+".\output\finsh_port.o"
+".\output\msh.o"
+".\output\shell.o"
 --library_type=microlib --strict --scatter ".\Output\F103xE.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

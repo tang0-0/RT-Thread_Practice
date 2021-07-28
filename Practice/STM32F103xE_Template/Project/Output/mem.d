@@ -2,7 +2,16 @@
 .\output\mem.o: ..\rt-thread\include\rthw.h
 .\output\mem.o: ..\rt-thread\include\rtthread.h
 .\output\mem.o: ..\rt-thread\bsp\rtconfig.h
+.\output\mem.o: ..\rt-thread\bsp\finsh_config.h
 .\output\mem.o: ..\rt-thread\include\rtdebug.h
 .\output\mem.o: ..\rt-thread\include\rtdef.h
 .\output\mem.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 .\output\mem.o: ..\rt-thread\include\rtservice.h
+.\output\mem.o: ..\rt-thread\components\finsh\finsh_api.h
+.\output\mem.o: ..\rt-thread\components\finsh\finsh_config.h
+.\output\mem.o: ..\rt-thread\components\finsh\finsh.h
+.\output\mem.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\output\mem.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
+.\output\mem.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\output\mem.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\output\mem.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

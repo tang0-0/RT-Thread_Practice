@@ -2,7 +2,10 @@
 .\output\memheap.o: ..\rt-thread\include\rthw.h
 .\output\memheap.o: ..\rt-thread\include\rtthread.h
 .\output\memheap.o: ..\rt-thread\bsp\rtconfig.h
+.\output\memheap.o: ..\rt-thread\bsp\finsh_config.h
 .\output\memheap.o: ..\rt-thread\include\rtdebug.h
 .\output\memheap.o: ..\rt-thread\include\rtdef.h
 .\output\memheap.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 .\output\memheap.o: ..\rt-thread\include\rtservice.h
+.\output\memheap.o: ..\rt-thread\components\finsh\finsh_api.h
+.\output\memheap.o: ..\rt-thread\components\finsh\finsh_config.h

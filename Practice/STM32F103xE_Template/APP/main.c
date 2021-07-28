@@ -8,7 +8,8 @@ static void test_thread_entry(void *parameter)
 {
     while (1)
     {
-		rt_kprintf("test code!\n");
+		// rt_kprintf("test code!\n");
+        LED1_TOGGLE;
         rt_thread_delay(1000);   /* 延时1000个tick */
     }
 }

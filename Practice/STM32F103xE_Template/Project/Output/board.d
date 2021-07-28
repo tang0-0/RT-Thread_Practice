@@ -30,10 +30,14 @@
 .\output\board.o: ..\Libraries\FWlib\inc\stm32f10x_wwdg.h
 .\output\board.o: ..\Libraries\FWlib\inc\misc.h
 .\output\board.o: ..\BSP\bsp_uart.h
+.\output\board.o: ..\BSP\bsp_led.h
 .\output\board.o: ..\rt-thread\include\rthw.h
 .\output\board.o: ..\rt-thread\include\rtthread.h
 .\output\board.o: ..\rt-thread\bsp\rtconfig.h
+.\output\board.o: ..\rt-thread\bsp\finsh_config.h
 .\output\board.o: ..\rt-thread\include\rtdebug.h
 .\output\board.o: ..\rt-thread\include\rtdef.h
 .\output\board.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
 .\output\board.o: ..\rt-thread\include\rtservice.h
+.\output\board.o: ..\rt-thread\components\finsh\finsh_api.h
+.\output\board.o: ..\rt-thread\components\finsh\finsh_config.h

@@ -557,6 +557,11 @@
               <FileType>1</FileType>
               <FilePath>..\BSP\bsp_uart.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\bsp_led.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -684,6 +689,31 @@
               <FileName>timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\rt-thread\src\timer.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>RTT/components</GroupName>
+          <Files>
+            <File>
+              <FileName>cmd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\rt-thread\components\finsh\cmd.c</FilePath>
+            </File>
+            <File>
+              <FileName>finsh_port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\rt-thread\components\finsh\finsh_port.c</FilePath>
+            </File>
+            <File>
+              <FileName>msh.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\rt-thread\components\finsh\msh.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\rt-thread\components\finsh\shell.c</FilePath>
             </File>
           </Files>
         </Group>
